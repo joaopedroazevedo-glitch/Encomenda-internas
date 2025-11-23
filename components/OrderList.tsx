@@ -1,17 +1,28 @@
 import React from 'react';
 import { Trash2, FileDown, Leaf } from 'lucide-react';
-import { Order } from '../types';
+import { Order, OrderStatus } from '../types';
 
 interface OrderListProps {
   orders: Order[];
   onDelete: (id: string) => void;
   onExportOrder: (order: Order) => void;
+  onStatusChange: (id: string, status: OrderStatus) => void;
 }
 
-export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExportOrder }) => {
+export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExportOrder, onStatusChange }) => {
   // Define minimum rows to simulate a full sheet page
   const minRows = 15;
   const emptyRows = Math.max(0, minRows - orders.length);
+
+  const getStatusColor = (status: OrderStatus) => {
+    switch (status) {
+      case 'Pendente': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Em Curso': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Concluído': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Anulado': return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
 
   return (
     <div className="bg-white border border-gray-400 shadow-sm select-none flex flex-col">
@@ -29,9 +40,6 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
                 Nº Enc.
               </th>
-              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
-                Nº Fatura
-              </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-10 text-center">
                 <Leaf className="w-3.5 h-3.5 mx-auto text-green-600" />
               </th>
@@ -46,6 +54,9 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
                 Secção
+              </th>
+              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-32">
+                Estado
               </th>
               <th className="w-24 border border-gray-400 px-2 py-1 text-center font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
                 Ações
@@ -64,9 +75,6 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 <td className="border border-gray-300 px-3 py-1 text-gray-900 font-mono text-xs font-semibold">
                   {order.orderNumber || '-'}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900 font-mono text-xs">
-                  {order.invoiceNumber || '-'}
-                </td>
                 <td className="border border-gray-300 px-1 py-1 text-center">
                   {order.isOrganicRecycled && (
                     <Leaf className="w-3.5 h-3.5 mx-auto text-green-600 fill-green-50" />
@@ -83,6 +91,24 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 </td>
                 <td className="border border-gray-300 px-3 py-1 text-gray-900">
                   {order.section}
+                </td>
+                <td className="border border-gray-300 px-1 py-1 text-center">
+                  <select
+                    value={order.status || 'Pendente'}
+                    onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
+                    className={`block w-full py-0.5 pl-2 pr-6 border rounded text-xs font-medium cursor-pointer focus:ring-1 focus:ring-offset-0 focus:ring-blue-500 appearance-none ${getStatusColor(order.status || 'Pendente')}`}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: `right 0.2rem center`,
+                      backgroundSize: `1.2em 1.2em`,
+                      backgroundRepeat: 'no-repeat'
+                    }}
+                  >
+                    <option value="Pendente">Pendente</option>
+                    <option value="Em Curso">Em Curso</option>
+                    <option value="Concluído">Concluído</option>
+                    <option value="Anulado">Anulado</option>
+                  </select>
                 </td>
                 <td className="border border-gray-300 px-1 py-1 text-center bg-white">
                   <div className="flex items-center justify-center gap-1">

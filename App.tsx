@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Search } from 'lucide-react';
 import { Header } from './components/Header';
 import { OrderForm } from './components/OrderForm';
 import { OrderList } from './components/OrderList';
-import { Order, OrderFormData } from './types';
+import { Order, OrderFormData, OrderStatus } from './types';
 
 // Constants
 const STORAGE_KEY = 'internal_orders_data';
@@ -12,13 +13,20 @@ const STORAGE_KEY = 'internal_orders_data';
 function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setOrders(JSON.parse(saved));
+        const parsedOrders = JSON.parse(saved);
+        // Ensure backward compatibility by adding default status if missing
+        const migratedOrders = parsedOrders.map((o: any) => ({
+          ...o,
+          status: o.status || 'Pendente'
+        }));
+        setOrders(migratedOrders);
       } catch (e) {
         console.error("Failed to parse orders", e);
       }
@@ -43,11 +51,17 @@ function App() {
     const newOrder: Order = {
       id: crypto.randomUUID(),
       orderNumber: getNextOrderNumber(), // Auto-generate
-      invoiceNumber: '', // Default to empty
+      status: 'Pendente', // Default status
       ...data
     };
     // Add to top of list
     setOrders(prev => [newOrder, ...prev]);
+  };
+
+  const handleStatusChange = (id: string, newStatus: OrderStatus) => {
+    setOrders(prev => prev.map(order => 
+      order.id === id ? { ...order, status: newStatus } : order
+    ));
   };
 
   const handleDeleteOrder = (id: string) => {
@@ -71,6 +85,20 @@ function App() {
     }
   };
 
+  // Compute filtered and sorted orders
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter(order => 
+        order.client.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        // Sort by Date Descending (Newest first)
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA;
+      });
+  }, [orders, searchTerm]);
+
   // Export full list to PDF
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -93,16 +121,16 @@ function App() {
     // Table
     autoTable(doc, {
       startY: 40,
-      head: [['Data', 'Nº Enc.', 'Org.', 'Nº Fatura', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Secção']],
-      body: orders.map(order => [
+      head: [['Data', 'Nº Enc.', 'Org.', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Secção', 'Estado']],
+      body: filteredOrders.map(order => [
         new Date(order.date).toLocaleDateString('pt-PT'),
         order.orderNumber || '',
         order.isOrganicRecycled ? 'Sim' : '',
-        order.invoiceNumber || '',
         order.item,
         order.quantity || '',
         order.client,
-        order.section
+        order.section,
+        order.status || 'Pendente'
       ]),
       styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: {
@@ -112,7 +140,7 @@ function App() {
       alternateRowStyles: { fillColor: [240, 249, 255] }, // primary-50
       // Highlight organic rows slightly green in the table body? Optional, but helpful.
       didParseCell: (data) => {
-        const rowOrder = orders[data.row.index];
+        const rowOrder = filteredOrders[data.row.index];
         if (rowOrder && rowOrder.isOrganicRecycled && data.section === 'body') {
            // Optional: Apply style to specific cells if needed
         }
@@ -122,7 +150,7 @@ function App() {
     doc.save(`encomendas_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
-  // Export single order to PDF
+  // Export single order to PDF (Excel Grid Style)
   const handleExportOrder = (order: Order) => {
     const doc = new jsPDF();
     
@@ -132,106 +160,131 @@ function App() {
     // Blue: [14, 165, 233] (#0ea5e9)
     // Green: [22, 163, 74] (#16a34a)
     const primaryColor = isOrganic ? [22, 163, 74] : [14, 165, 233];
-    const headerTitle = isOrganic ? 'Encomenda Interna (Orgânico/Reciclado)' : 'Encomenda Interna';
+    const headerTitle = isOrganic ? 'ENCOMENDA (ORGÂNICO/RECICLADO)' : 'ENCOMENDA INTERNA';
     
-    // Header background
+    // 1. Header background
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(0, 0, 210, 35, 'F');
+    doc.rect(0, 0, 210, 30, 'F');
     
-    // Header Text
+    // 2. Header Text
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(isOrganic ? 18 : 22); // Slightly smaller if title is longer
-    doc.text(headerTitle, 105, 22, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text(headerTitle, 105, 18, { align: 'center' });
     
     // Reset defaults
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
     
-    let y = 50;
-    const leftMargin = 20;
-    const contentWidth = 170;
-    const lineHeight = 7;
+    // 3. Define Table Data (5 Rows Grid Style)
+    // Using autoTable to draw a form-like grid
+    
+    const labelStyle = { 
+      fontStyle: 'bold', 
+      fillColor: [245, 247, 250], // Light Gray for labels
+      textColor: [55, 65, 81],
+      halign: 'left'
+    };
+    
+    const valueStyle = {
+      fontStyle: 'normal',
+      textColor: [0, 0, 0]
+    };
 
-    // --- Row 1: Basic Info ---
-    doc.setFont('helvetica', 'bold');
-    doc.text('Nº Encomenda:', leftMargin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.orderNumber || '-', leftMargin + 35, y);
+    const tableBody = [
+      // Row 1: Data | Nº Encomenda
+      [
+        { content: 'DATA', styles: labelStyle },
+        { content: new Date(order.date).toLocaleDateString('pt-PT'), styles: valueStyle },
+        { content: 'Nº ENCOMENDA', styles: labelStyle },
+        { content: order.orderNumber || '-', styles: { ...valueStyle, fontStyle: 'bold', fontSize: 11 } }
+      ],
+      // Row 2: Cliente | Secção
+      [
+        { content: 'CLIENTE', styles: labelStyle },
+        { content: order.client, styles: valueStyle },
+        { content: 'SECÇÃO', styles: labelStyle },
+        { content: order.section, styles: valueStyle }
+      ],
+      // Row 3: Artigo (Full Width)
+      [
+        { content: 'ARTIGO / SERVIÇO', styles: labelStyle },
+        { content: order.item, colSpan: 3, styles: { ...valueStyle, minCellHeight: 20, valign: 'middle' } }
+      ],
+      // Row 4: Quantidade (Extended since Invoice is removed)
+      [
+        { content: 'QUANTIDADE', styles: labelStyle },
+        { content: order.quantity || '-', colSpan: 3, styles: valueStyle }
+      ],
+      // Row 5: Estado | Tipo
+      [
+        { content: 'ESTADO ATUAL', styles: labelStyle },
+        { content: order.status || 'Pendente', styles: valueStyle },
+        { content: 'TIPO', styles: labelStyle },
+        { 
+          content: isOrganic ? 'ORGÂNICO / RECICLADO' : 'PADRÃO', 
+          styles: { 
+            ...valueStyle, 
+            textColor: isOrganic ? [22, 163, 74] : [0, 0, 0],
+            fontStyle: isOrganic ? 'bold' : 'normal'
+          } 
+        }
+      ]
+    ];
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Data:', leftMargin + 80, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(new Date(order.date).toLocaleDateString('pt-PT'), leftMargin + 95, y);
-    
-    y += lineHeight * 2;
+    autoTable(doc, {
+      startY: 40,
+      body: tableBody,
+      theme: 'grid',
+      styles: {
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        fontSize: 10,
+        cellPadding: 4
+      },
+      columnStyles: {
+        0: { cellWidth: 40 }, // Label Col 1
+        1: { cellWidth: 65 }, // Value Col 1
+        2: { cellWidth: 40 }, // Label Col 2
+        3: { cellWidth: 'auto' } // Value Col 2
+      }
+    });
 
-    // --- Row 2: Article (Dynamic Height) ---
-    doc.setFont('helvetica', 'bold');
-    doc.text('Artigo / Serviço:', leftMargin, y);
-    
-    y += lineHeight;
-    
-    doc.setFont('helvetica', 'normal');
-    // Wrap text to width
-    const splitItem = doc.splitTextToSize(order.item, contentWidth);
-    doc.text(splitItem, leftMargin, y);
-    
-    // Calculate height consumed by text (approx 5-6 units per line in this font size)
-    const textHeight = splitItem.length * 6; 
-    
-    y += textHeight + lineHeight; // Add some padding after text
+    // Extra Table for Partial Deliveries (Requested: 2 cols, 10 rows)
+    const finalY = (doc as any).lastAutoTable.finalY;
 
-    // --- Separator Line ---
-    doc.setDrawColor(220, 220, 220);
-    doc.line(leftMargin, y - 5, leftMargin + contentWidth, y - 5);
-    y += 5;
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text('REGISTO DE ENTREGAS / FATURAS', 14, finalY + 12);
 
-    // --- Row 3: Client & Section ---
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cliente:', leftMargin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.client, leftMargin + 20, y);
+    // Create 10 empty rows
+    const emptyRows = Array(10).fill(['', '']);
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Secção:', leftMargin + 80, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.section, leftMargin + 100, y);
-    
-    y += lineHeight * 1.5;
-
-    // --- Row 4: Quantity ---
-    doc.setFont('helvetica', 'bold');
-    doc.text('Quantidade:', leftMargin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.quantity || '-', leftMargin + 25, y);
-    
-    if (order.invoiceNumber) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('Nº Fatura:', leftMargin + 80, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text(order.invoiceNumber, leftMargin + 105, y);
-    }
-    
-    // Optional indicator in body
-    if (isOrganic) {
-      y += lineHeight * 1.5;
-      doc.setTextColor(22, 163, 74); // Green text
-      doc.setFont('helvetica', 'bolditalic');
-      doc.text('* Artigo Orgânico / Reciclado', leftMargin, y);
-      doc.setTextColor(0, 0, 0); // Reset
-    }
-
-    // Outer Border (Optional, drawing based on dynamic height)
-    // We draw a rectangle from y=40 to current y + padding
-    const boxStart = 40;
-    const boxHeight = (y + 10) - boxStart;
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(14, boxStart, 182, boxHeight);
+    autoTable(doc, {
+      startY: finalY + 15,
+      head: [['Quantidade', 'Fatura']],
+      body: emptyRows,
+      theme: 'grid',
+      styles: {
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        fontSize: 10,
+        minCellHeight: 10, // Adjusted for 10 rows
+        halign: 'center',
+        valign: 'middle'
+      },
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [50, 50, 50],
+        fontStyle: 'bold',
+        lineWidth: 0.1,
+        lineColor: [200, 200, 200]
+      }
+    });
 
     // Footer
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text('Documento gerado automaticamente.', 105, 280, { align: 'center' });
+    doc.text('Documento gerado automaticamente pelo Gestor de Encomendas.', 105, 285, { align: 'center' });
 
     doc.save(`encomenda_${order.orderNumber || 'sem_numero'}.pdf`);
   };
@@ -248,10 +301,32 @@ function App() {
           <OrderForm 
             onAddOrder={handleAddOrder} 
           />
+          
+          {/* Search Bar */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3">
+            <Search className="w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Pesquisar por cliente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
+            />
+            {searchTerm && (
+               <button 
+                 onClick={() => setSearchTerm('')}
+                 className="text-xs text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+               >
+                 Limpar
+               </button>
+            )}
+          </div>
+
           <OrderList 
-            orders={orders} 
+            orders={filteredOrders} 
             onDelete={handleDeleteOrder} 
             onExportOrder={handleExportOrder}
+            onStatusChange={handleStatusChange}
           />
         </div>
       </main>

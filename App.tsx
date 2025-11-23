@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Search } from 'lucide-react';
+import { Search, User, X } from 'lucide-react';
 import { Header } from './components/Header';
 import { OrderForm } from './components/OrderForm';
 import { OrderList } from './components/OrderList';
@@ -13,7 +13,10 @@ const STORAGE_KEY = 'internal_orders_data';
 function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Separate search states
+  const [searchClient, setSearchClient] = useState('');
+  const [searchOrderNumber, setSearchOrderNumber] = useState('');
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -88,16 +91,22 @@ function App() {
   // Compute filtered and sorted orders
   const filteredOrders = useMemo(() => {
     return orders
-      .filter(order => 
-        order.client.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter(order => {
+        // Filter by Client
+        const clientMatch = order.client.toLowerCase().includes(searchClient.toLowerCase());
+        
+        // Filter by Order Number
+        const numberMatch = !searchOrderNumber || (order.orderNumber && order.orderNumber.includes(searchOrderNumber));
+        
+        return clientMatch && numberMatch;
+      })
       .sort((a, b) => {
-        // Sort by Date Descending (Newest first)
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return dateB - dateA;
+        // Sort by Order Number Descending (Numeric)
+        const numA = parseInt(a.orderNumber || '0', 10);
+        const numB = parseInt(b.orderNumber || '0', 10);
+        return numB - numA;
       });
-  }, [orders, searchTerm]);
+  }, [orders, searchClient, searchOrderNumber]);
 
   // Export full list to PDF
   const handleExportPDF = () => {
@@ -302,24 +311,49 @@ function App() {
             onAddOrder={handleAddOrder} 
           />
           
-          {/* Search Bar */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Pesquisar por cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
-            />
-            {searchTerm && (
-               <button 
-                 onClick={() => setSearchTerm('')}
-                 className="text-xs text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
-               >
-                 Limpar
-               </button>
-            )}
+          {/* Search Bars */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Client Search */}
+            <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3 transition-shadow focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+              <User className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Pesquisar por cliente..."
+                value={searchClient}
+                onChange={(e) => setSearchClient(e.target.value)}
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
+              />
+              {searchClient && (
+                <button 
+                  onClick={() => setSearchClient('')}
+                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Limpar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Order Number Search */}
+            <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3 transition-shadow focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Pesquisar por nº encomenda..."
+                value={searchOrderNumber}
+                onChange={(e) => setSearchOrderNumber(e.target.value)}
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
+              />
+              {searchOrderNumber && (
+                <button 
+                  onClick={() => setSearchOrderNumber('')}
+                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Limpar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           <OrderList 

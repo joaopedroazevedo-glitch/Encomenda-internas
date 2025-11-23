@@ -68,7 +68,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.date}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               placeholder="Ex: Cliente A"
               value={formData.client}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -110,7 +110,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.section}
               onChange={handleChange}
-              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-gray-50 text-gray-900"
+              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900"
             >
               <option value="" disabled>Selecione</option>
               {sectionOptions.map((option) => (
@@ -144,7 +144,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               placeholder="Ex: 10"
               value={formData.quantity}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -166,7 +166,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               placeholder="Descrição do artigo ou serviço..."
               value={formData.item}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>

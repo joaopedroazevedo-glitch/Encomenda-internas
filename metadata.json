@@ -1,0 +1,5 @@
+{
+  "name": "Gestor de Encomendas Internas",
+  "description": "Uma aplicação simples e eficiente para gerir encomendas internas, permitindo adicionar, visualizar, eliminar e exportar registos para PDF.",
+  "requestFramePermissions": []
+}

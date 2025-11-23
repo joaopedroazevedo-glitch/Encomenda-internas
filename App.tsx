@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Search, User, X } from 'lucide-react';
+import { Search, User, X, Box, Activity } from 'lucide-react';
 import { Header } from './components/Header';
 import { OrderForm } from './components/OrderForm';
 import { OrderList } from './components/OrderList';
@@ -17,6 +17,7 @@ function App() {
   // Separate search states
   const [searchClient, setSearchClient] = useState('');
   const [searchOrderNumber, setSearchOrderNumber] = useState('');
+  const [searchStatus, setSearchStatus] = useState('');
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -24,10 +25,11 @@ function App() {
     if (saved) {
       try {
         const parsedOrders = JSON.parse(saved);
-        // Ensure backward compatibility by adding default status if missing
+        // Ensure backward compatibility by adding default status and commercial if missing
         const migratedOrders = parsedOrders.map((o: any) => ({
           ...o,
-          status: o.status || 'Pendente'
+          status: o.status || 'Pendente',
+          commercial: o.commercial || ''
         }));
         setOrders(migratedOrders);
       } catch (e) {
@@ -98,7 +100,10 @@ function App() {
         // Filter by Order Number
         const numberMatch = !searchOrderNumber || (order.orderNumber && order.orderNumber.includes(searchOrderNumber));
         
-        return clientMatch && numberMatch;
+        // Filter by Status
+        const statusMatch = !searchStatus || order.status === searchStatus;
+        
+        return clientMatch && numberMatch && statusMatch;
       })
       .sort((a, b) => {
         // Sort by Order Number Descending (Numeric)
@@ -106,7 +111,7 @@ function App() {
         const numB = parseInt(b.orderNumber || '0', 10);
         return numB - numA;
       });
-  }, [orders, searchClient, searchOrderNumber]);
+  }, [orders, searchClient, searchOrderNumber, searchStatus]);
 
   // Export full list to PDF
   const handleExportPDF = () => {
@@ -130,7 +135,7 @@ function App() {
     // Table
     autoTable(doc, {
       startY: 40,
-      head: [['Data', 'Nº Enc.', 'Org.', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Secção', 'Estado']],
+      head: [['Data', 'Nº Enc.', 'Org.', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Comercial', 'Secção', 'Estado']],
       body: filteredOrders.map(order => [
         new Date(order.date).toLocaleDateString('pt-PT'),
         order.orderNumber || '',
@@ -138,6 +143,7 @@ function App() {
         order.item,
         order.quantity || '',
         order.client,
+        order.commercial || '',
         order.section,
         order.status || 'Pendente'
       ]),
@@ -145,8 +151,8 @@ function App() {
       columnStyles: {
         2: { cellWidth: 15, halign: 'center' } // Small column for Organic flag
       },
-      headStyles: { fillColor: [14, 165, 233] }, // primary-500 color
-      alternateRowStyles: { fillColor: [240, 249, 255] }, // primary-50
+      headStyles: { fillColor: [14, 165, 233] as [number, number, number] }, // primary-500 color
+      alternateRowStyles: { fillColor: [240, 249, 255] as [number, number, number] }, // primary-50
       // Highlight organic rows slightly green in the table body? Optional, but helpful.
       didParseCell: (data) => {
         const rowOrder = filteredOrders[data.row.index];
@@ -188,15 +194,15 @@ function App() {
     // Using autoTable to draw a form-like grid
     
     const labelStyle = { 
-      fontStyle: 'bold', 
-      fillColor: [245, 247, 250], // Light Gray for labels
-      textColor: [55, 65, 81],
-      halign: 'left'
+      fontStyle: 'bold' as const, 
+      fillColor: [245, 247, 250] as [number, number, number], // Light Gray for labels
+      textColor: [55, 65, 81] as [number, number, number],
+      halign: 'left' as const
     };
     
     const valueStyle = {
-      fontStyle: 'normal',
-      textColor: [0, 0, 0]
+      fontStyle: 'normal' as const,
+      textColor: [0, 0, 0] as [number, number, number]
     };
 
     const tableBody = [
@@ -205,24 +211,26 @@ function App() {
         { content: 'DATA', styles: labelStyle },
         { content: new Date(order.date).toLocaleDateString('pt-PT'), styles: valueStyle },
         { content: 'Nº ENCOMENDA', styles: labelStyle },
-        { content: order.orderNumber || '-', styles: { ...valueStyle, fontStyle: 'bold', fontSize: 11 } }
+        { content: order.orderNumber || '-', styles: { ...valueStyle, fontStyle: 'bold' as const, fontSize: 11 } }
       ],
-      // Row 2: Cliente | Secção
+      // Row 2: Cliente | Comercial
       [
         { content: 'CLIENTE', styles: labelStyle },
         { content: order.client, styles: valueStyle },
-        { content: 'SECÇÃO', styles: labelStyle },
-        { content: order.section, styles: valueStyle }
+        { content: 'COMERCIAL', styles: labelStyle },
+        { content: order.commercial || '-', styles: valueStyle }
       ],
-      // Row 3: Artigo (Full Width)
+      // Row 3: Secção | Quantidade
+      [
+        { content: 'SECÇÃO', styles: labelStyle },
+        { content: order.section, styles: valueStyle },
+        { content: 'QUANTIDADE', styles: labelStyle },
+        { content: order.quantity || '-', styles: valueStyle }
+      ],
+      // Row 4: Artigo (Full Width)
       [
         { content: 'ARTIGO / SERVIÇO', styles: labelStyle },
-        { content: order.item, colSpan: 3, styles: { ...valueStyle, minCellHeight: 20, valign: 'middle' } }
-      ],
-      // Row 4: Quantidade (Extended since Invoice is removed)
-      [
-        { content: 'QUANTIDADE', styles: labelStyle },
-        { content: order.quantity || '-', colSpan: 3, styles: valueStyle }
+        { content: order.item, colSpan: 3, styles: { ...valueStyle, minCellHeight: 20, valign: 'middle' as const } }
       ],
       // Row 5: Estado | Tipo
       [
@@ -233,8 +241,8 @@ function App() {
           content: isOrganic ? 'ORGÂNICO / RECICLADO' : 'PADRÃO', 
           styles: { 
             ...valueStyle, 
-            textColor: isOrganic ? [22, 163, 74] : [0, 0, 0],
-            fontStyle: isOrganic ? 'bold' : 'normal'
+            textColor: (isOrganic ? [22, 163, 74] : [0, 0, 0]) as [number, number, number],
+            fontStyle: (isOrganic ? 'bold' : 'normal') as 'bold' | 'normal'
           } 
         }
       ]
@@ -245,7 +253,7 @@ function App() {
       body: tableBody,
       theme: 'grid',
       styles: {
-        lineColor: [200, 200, 200],
+        lineColor: [200, 200, 200] as [number, number, number],
         lineWidth: 0.1,
         fontSize: 10,
         cellPadding: 4
@@ -262,7 +270,7 @@ function App() {
     const finalY = (doc as any).lastAutoTable.finalY;
 
     doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
+    doc.setTextColor(0, 0, 0); // Changed to black
     doc.text('REGISTO DE ENTREGAS / FATURAS', 14, finalY + 12);
 
     // Create 10 empty rows
@@ -274,95 +282,130 @@ function App() {
       body: emptyRows,
       theme: 'grid',
       styles: {
-        lineColor: [200, 200, 200],
+        lineColor: [0, 0, 0] as [number, number, number], // Black lines
+        textColor: [0, 0, 0] as [number, number, number], // Black text
         lineWidth: 0.1,
         fontSize: 10,
         minCellHeight: 10, // Adjusted for 10 rows
         halign: 'center',
-        valign: 'middle'
+        valign: 'middle' as const
       },
       headStyles: {
-        fillColor: [240, 240, 240],
-        textColor: [50, 50, 50],
-        fontStyle: 'bold',
+        fillColor: [255, 255, 255] as [number, number, number], // White background
+        textColor: [0, 0, 0] as [number, number, number],       // Black text
         lineWidth: 0.1,
-        lineColor: [200, 200, 200]
+        lineColor: [0, 0, 0] as [number, number, number]        // Black border
       }
     });
 
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Documento gerado automaticamente pelo Gestor de Encomendas.', 105, 285, { align: 'center' });
+    // --- NEW: REF ARTIGO FRAME ---
+    const finalY2 = (doc as any).lastAutoTable.finalY;
+    
+    // Draw frame
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.1);
+    doc.rect(14, finalY2 + 5, 182, 12); // x=14, y=after table + 5, width=182, height=12
+    
+    // Add Text
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text("REFª ARTIGO:", 16, finalY2 + 12.5);
+    // -----------------------------
 
     doc.save(`encomenda_${order.orderNumber || 'sem_numero'}.pdf`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        totalOrders={orders.length} 
-        onExport={handleExportPDF} 
-      />
+      <Header totalOrders={filteredOrders.length} onExport={handleExportPDF} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <OrderForm 
-            onAddOrder={handleAddOrder} 
-          />
-          
-          {/* Search Bars */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <OrderForm onAddOrder={handleAddOrder} />
+
+        {/* Search Bar */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            Pesquisar e Filtrar
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Client Search */}
-            <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3 transition-shadow focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
-              <User className="w-5 h-5 text-gray-400" />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="h-4 w-4 text-gray-400" />
+              </div>
               <input
                 type="text"
-                placeholder="Pesquisar por cliente..."
+                placeholder="Filtrar por Cliente..."
                 value={searchClient}
                 onChange={(e) => setSearchClient(e.target.value)}
-                className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
+                className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
               />
               {searchClient && (
-                <button 
+                <button
                   onClick={() => setSearchClient('')}
-                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
-                  title="Limpar"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
 
             {/* Order Number Search */}
-            <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3 transition-shadow focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
-              <Search className="w-5 h-5 text-gray-400" />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
               <input
                 type="text"
-                placeholder="Pesquisar por nº encomenda..."
+                placeholder="Nº Encomenda..."
                 value={searchOrderNumber}
                 onChange={(e) => setSearchOrderNumber(e.target.value)}
-                className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-900 placeholder-gray-500 outline-none"
+                className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
               />
               {searchOrderNumber && (
-                <button 
+                <button
                   onClick={() => setSearchOrderNumber('')}
-                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
-                  title="Limpar"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
-          </div>
 
-          <OrderList 
-            orders={filteredOrders} 
-            onDelete={handleDeleteOrder} 
-            onExportOrder={handleExportOrder}
-            onStatusChange={handleStatusChange}
-          />
+            {/* Status Search */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Activity className="h-4 w-4 text-gray-400" />
+              </div>
+              <select
+                value={searchStatus}
+                onChange={(e) => setSearchStatus(e.target.value)}
+                className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900"
+              >
+                <option value="">Todos os Estados</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Em Curso">Em Curso</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Anulado">Anulado</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <OrderList 
+          orders={filteredOrders} 
+          onDelete={handleDeleteOrder}
+          onExportOrder={handleExportOrder}
+          onStatusChange={handleStatusChange}
+        />
       </main>
     </div>
   );

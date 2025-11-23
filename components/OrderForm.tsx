@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Calendar, User, Box, Layers, Hash, Leaf } from 'lucide-react';
+import { PlusCircle, Calendar, User, Box, Layers, Hash, Leaf, Briefcase } from 'lucide-react';
 import { OrderFormData } from '../types';
 
 interface OrderFormProps {
@@ -12,6 +12,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
     item: '',
     quantity: '',
     client: '',
+    commercial: '',
     section: '',
     isOrganicRecycled: false
   });
@@ -27,6 +28,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
       item: '',
       quantity: '',
       client: '',
+      commercial: '',
       section: '',
       isOrganicRecycled: false
     }));
@@ -52,6 +54,19 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
     "Expedição"
   ];
 
+  const commercialOptions = [
+    "Carlos Almeida",
+    "Cristiana",
+    "Fátima",
+    "Francisca",
+    "Francisco",
+    "Isabel",
+    "Jorge",
+    "Luís Pereira",
+    "Manuel Costa",
+    "Marisa"
+  ];
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -60,8 +75,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
       </h2>
       
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Date Field - Col Span 3 */}
-        <div className="space-y-1 md:col-span-3">
+        {/* Date Field - Col Span 2 */}
+        <div className="space-y-1 md:col-span-2">
           <label htmlFor="date" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Data
           </label>
@@ -76,13 +91,13 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.date}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
+              className="block w-full pl-10 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
 
-        {/* Client Field - Col Span 4 */}
-        <div className="space-y-1 md:col-span-4">
+        {/* Client Field - Col Span 3 */}
+        <div className="space-y-1 md:col-span-3">
           <label htmlFor="client" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Cliente
           </label>
@@ -95,7 +110,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               id="client"
               name="client"
               required
-              placeholder="Ex: Cliente A"
+              placeholder="Nome do Cliente"
               value={formData.client}
               onChange={handleChange}
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
@@ -103,8 +118,39 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Section Field - Col Span 3 */}
+        {/* Commercial Field - Col Span 3 */}
         <div className="space-y-1 md:col-span-3">
+          <label htmlFor="commercial" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+            Comercial
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Briefcase className="h-4 w-4 text-gray-400" />
+            </div>
+            <select
+              id="commercial"
+              name="commercial"
+              value={formData.commercial}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900 text-ellipsis overflow-hidden"
+            >
+              <option value="">Selecione...</option>
+              {commercialOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-1 pointer-events-none">
+              <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Field - Col Span 2 */}
+        <div className="space-y-1 md:col-span-2">
           <label htmlFor="section" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Secção
           </label>
@@ -118,7 +164,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.section}
               onChange={handleChange}
-              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900"
+              className="block w-full pl-10 pr-6 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900 text-ellipsis overflow-hidden"
             >
               <option value="" disabled>Selecione</option>
               {sectionOptions.map((option) => (
@@ -127,7 +173,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
                 </option>
               ))}
             </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <div className="absolute inset-y-0 right-0 flex items-center px-1 pointer-events-none">
               <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -157,7 +203,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Item/Service Field - Full Width */}
+        {/* Item/Service Field - Col Span 9 */}
         <div className="space-y-1 md:col-span-9">
           <label htmlFor="item" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Artigo / Serviço

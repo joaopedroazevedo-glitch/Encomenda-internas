@@ -7,6 +7,7 @@ export interface Order {
   item: string;
   quantity: string;
   client: string;
+  commercial: string;
   section: string;
   isOrganicRecycled?: boolean;
   status: OrderStatus;

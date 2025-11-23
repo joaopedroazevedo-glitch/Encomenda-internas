@@ -43,7 +43,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-10 text-center">
                 <Leaf className="w-3.5 h-3.5 mx-auto text-green-600" />
               </th>
-              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
+              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider min-w-[200px]">
                 Artigo / Serviço
               </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
@@ -51,6 +51,9 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
                 Cliente
+              </th>
+              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
+                Comercial
               </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
                 Secção
@@ -72,7 +75,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-nowrap">
                   {new Date(order.date).toLocaleDateString('pt-PT')}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900 font-mono text-xs font-semibold">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 font-mono text-xs font-semibold whitespace-nowrap">
                   {order.orderNumber || '-'}
                 </td>
                 <td className="border border-gray-300 px-1 py-1 text-center">
@@ -80,16 +83,19 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                     <Leaf className="w-3.5 h-3.5 mx-auto text-green-600 fill-green-50" />
                   )}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-normal break-words max-w-xs sm:max-w-md">
                   {order.item}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900 text-right font-mono">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 text-right font-mono whitespace-nowrap">
                   {order.quantity || '-'}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-nowrap">
                   {order.client}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-nowrap">
+                  {order.commercial}
+                </td>
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-nowrap">
                   {order.section}
                 </td>
                 <td className="border border-gray-300 px-1 py-1 text-center">
@@ -143,6 +149,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 <td className="border border-gray-300 bg-gray-50 text-center text-gray-300 text-xs font-mono py-1 select-none">
                   {orders.length + i + 1}
                 </td>
+                <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>

@@ -7,6 +7,7 @@ export interface Order {
   quantity: string;
   client: string;
   section: string;
+  isOrganicRecycled?: boolean;
 }
 
 export type OrderFormData = Omit<Order, 'id' | 'orderNumber' | 'invoiceNumber'>;

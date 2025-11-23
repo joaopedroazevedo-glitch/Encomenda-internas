@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, FileDown } from 'lucide-react';
+import { Trash2, FileDown, Leaf } from 'lucide-react';
 import { Order } from '../types';
 
 interface OrderListProps {
@@ -32,6 +32,9 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
                 Nº Fatura
               </th>
+              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-10 text-center">
+                <Leaf className="w-3.5 h-3.5 mx-auto text-green-600" />
+              </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
                 Artigo / Serviço
               </th>
@@ -63,6 +66,11 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 </td>
                 <td className="border border-gray-300 px-3 py-1 text-gray-900 font-mono text-xs">
                   {order.invoiceNumber || '-'}
+                </td>
+                <td className="border border-gray-300 px-1 py-1 text-center">
+                  {order.isOrganicRecycled && (
+                    <Leaf className="w-3.5 h-3.5 mx-auto text-green-600 fill-green-50" />
+                  )}
                 </td>
                 <td className="border border-gray-300 px-3 py-1 text-gray-900">
                   {order.item}
@@ -109,6 +117,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 <td className="border border-gray-300 bg-gray-50 text-center text-gray-300 text-xs font-mono py-1 select-none">
                   {orders.length + i + 1}
                 </td>
+                <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>
                 <td className="border border-gray-300 px-3 py-1 h-8"></td>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Calendar, User, Box, Layers, Hash } from 'lucide-react';
+import { PlusCircle, Calendar, User, Box, Layers, Hash, Leaf } from 'lucide-react';
 import { OrderFormData } from '../types';
 
 interface OrderFormProps {
@@ -12,7 +12,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
     item: '',
     quantity: '',
     client: '',
-    section: ''
+    section: '',
+    isOrganicRecycled: false
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,13 +27,20 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
       item: '',
       quantity: '',
       client: '',
-      section: ''
+      section: '',
+      isOrganicRecycled: false
     }));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const sectionOptions = [
@@ -51,9 +59,9 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
         Nova Encomenda
       </h2>
       
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Date Field */}
-        <div className="space-y-1">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        {/* Date Field - Col Span 3 */}
+        <div className="space-y-1 md:col-span-3">
           <label htmlFor="date" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Data
           </label>
@@ -73,8 +81,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Client Field */}
-        <div className="space-y-1">
+        {/* Client Field - Col Span 4 */}
+        <div className="space-y-1 md:col-span-4">
           <label htmlFor="client" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Cliente
           </label>
@@ -95,8 +103,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Section Field */}
-        <div className="space-y-1">
+        {/* Section Field - Col Span 3 */}
+        <div className="space-y-1 md:col-span-3">
           <label htmlFor="section" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Secção
           </label>
@@ -127,8 +135,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Quantity Field */}
-        <div className="space-y-1">
+        {/* Quantity Field - Col Span 2 */}
+        <div className="space-y-1 md:col-span-2">
           <label htmlFor="quantity" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Quantidade
           </label>
@@ -141,7 +149,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               id="quantity"
               name="quantity"
               required
-              placeholder="Ex: 10"
+              placeholder="Qtd"
               value={formData.quantity}
               onChange={handleChange}
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-500"
@@ -149,8 +157,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
-        {/* Item/Service Field - Full Width on bottom line */}
-        <div className="space-y-1 md:col-span-4">
+        {/* Item/Service Field - Full Width */}
+        <div className="space-y-1 md:col-span-9">
           <label htmlFor="item" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
             Artigo / Serviço
           </label>
@@ -171,8 +179,26 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
+        {/* Organic/Recycled Checkbox - Col Span 3 */}
+        <div className="md:col-span-3 flex items-end pb-2">
+          <div className="flex items-center h-10 w-full p-2 border border-gray-200 rounded-lg bg-gray-50 hover:bg-green-50 transition-colors cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, isOrganicRecycled: !prev.isOrganicRecycled }))}>
+            <input
+              type="checkbox"
+              id="isOrganicRecycled"
+              name="isOrganicRecycled"
+              checked={formData.isOrganicRecycled}
+              onChange={handleChange}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="isOrganicRecycled" className="ml-2 block text-sm text-gray-700 cursor-pointer select-none flex items-center gap-1.5 font-medium">
+              <Leaf className={`w-4 h-4 ${formData.isOrganicRecycled ? 'text-green-600' : 'text-gray-400'}`} />
+              Orgânico/Reciclado
+            </label>
+          </div>
+        </div>
+
         {/* Submit Button */}
-        <div className="md:col-span-4 flex justify-end pt-2">
+        <div className="md:col-span-12 flex justify-end pt-2">
           <button
             type="submit"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all"

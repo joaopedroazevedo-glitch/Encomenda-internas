@@ -93,19 +93,30 @@ function App() {
     // Table
     autoTable(doc, {
       startY: 40,
-      head: [['Data', 'Nº Enc.', 'Nº Fatura', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Secção']],
+      head: [['Data', 'Nº Enc.', 'Org.', 'Nº Fatura', 'Artigo / Serviço', 'Qtd.', 'Cliente', 'Secção']],
       body: orders.map(order => [
         new Date(order.date).toLocaleDateString('pt-PT'),
         order.orderNumber || '',
+        order.isOrganicRecycled ? 'Sim' : '',
         order.invoiceNumber || '',
         order.item,
         order.quantity || '',
         order.client,
         order.section
       ]),
-      styles: { fontSize: 10, cellPadding: 3 },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: {
+        2: { cellWidth: 15, halign: 'center' } // Small column for Organic flag
+      },
       headStyles: { fillColor: [14, 165, 233] }, // primary-500 color
       alternateRowStyles: { fillColor: [240, 249, 255] }, // primary-50
+      // Highlight organic rows slightly green in the table body? Optional, but helpful.
+      didParseCell: (data) => {
+        const rowOrder = orders[data.row.index];
+        if (rowOrder && rowOrder.isOrganicRecycled && data.section === 'body') {
+           // Optional: Apply style to specific cells if needed
+        }
+      }
     });
 
     doc.save(`encomendas_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -115,14 +126,22 @@ function App() {
   const handleExportOrder = (order: Order) => {
     const doc = new jsPDF();
     
+    // Define Colors based on Organic status
+    const isOrganic = order.isOrganicRecycled;
+    
+    // Blue: [14, 165, 233] (#0ea5e9)
+    // Green: [22, 163, 74] (#16a34a)
+    const primaryColor = isOrganic ? [22, 163, 74] : [14, 165, 233];
+    const headerTitle = isOrganic ? 'Encomenda Interna (Orgânico/Reciclado)' : 'Encomenda Interna';
+    
     // Header background
-    doc.setFillColor(14, 165, 233); // Primary color
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 35, 'F');
     
     // Header Text
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.text('Encomenda Interna', 105, 22, { align: 'center' });
+    doc.setFontSize(isOrganic ? 18 : 22); // Slightly smaller if title is longer
+    doc.text(headerTitle, 105, 22, { align: 'center' });
     
     // Reset defaults
     doc.setTextColor(0, 0, 0);
@@ -158,8 +177,6 @@ function App() {
     doc.text(splitItem, leftMargin, y);
     
     // Calculate height consumed by text (approx 5-6 units per line in this font size)
-    // text dimensions are roughly fontSize * 0.3527 mm per pt. 
-    // We just use lines.length * custom line height
     const textHeight = splitItem.length * 6; 
     
     y += textHeight + lineHeight; // Add some padding after text
@@ -193,6 +210,15 @@ function App() {
         doc.text('Nº Fatura:', leftMargin + 80, y);
         doc.setFont('helvetica', 'normal');
         doc.text(order.invoiceNumber, leftMargin + 105, y);
+    }
+    
+    // Optional indicator in body
+    if (isOrganic) {
+      y += lineHeight * 1.5;
+      doc.setTextColor(22, 163, 74); // Green text
+      doc.setFont('helvetica', 'bolditalic');
+      doc.text('* Artigo Orgânico / Reciclado', leftMargin, y);
+      doc.setTextColor(0, 0, 0); // Reset
     }
 
     // Outer Border (Optional, drawing based on dynamic height)

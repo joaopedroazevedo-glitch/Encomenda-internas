@@ -115,69 +115,92 @@ function App() {
   const handleExportOrder = (order: Order) => {
     const doc = new jsPDF();
     
-    // Add Company/App Header
+    // Header background
     doc.setFillColor(14, 165, 233); // Primary color
-    doc.rect(0, 0, 210, 40, 'F');
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    // Header Text
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text('Encomenda Interna', 105, 25, { align: 'center' });
+    doc.text('Encomenda Interna', 105, 22, { align: 'center' });
     
-    // Reset text color
+    // Reset defaults
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-
-    // Order Info Box
-    const startY = 50;
-    const lineHeight = 10;
+    doc.setFontSize(11);
     
-    // Draw box for details
-    // Increased height to 110 to accommodate description on new lines
+    let y = 50;
+    const leftMargin = 20;
+    const contentWidth = 170;
+    const lineHeight = 7;
+
+    // --- Row 1: Basic Info ---
+    doc.setFont('helvetica', 'bold');
+    doc.text('Nº Encomenda:', leftMargin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.orderNumber || '-', leftMargin + 35, y);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Data:', leftMargin + 80, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(order.date).toLocaleDateString('pt-PT'), leftMargin + 95, y);
+    
+    y += lineHeight * 2;
+
+    // --- Row 2: Article (Dynamic Height) ---
+    doc.setFont('helvetica', 'bold');
+    doc.text('Artigo / Serviço:', leftMargin, y);
+    
+    y += lineHeight;
+    
+    doc.setFont('helvetica', 'normal');
+    // Wrap text to width
+    const splitItem = doc.splitTextToSize(order.item, contentWidth);
+    doc.text(splitItem, leftMargin, y);
+    
+    // Calculate height consumed by text (approx 5-6 units per line in this font size)
+    // text dimensions are roughly fontSize * 0.3527 mm per pt. 
+    // We just use lines.length * custom line height
+    const textHeight = splitItem.length * 6; 
+    
+    y += textHeight + lineHeight; // Add some padding after text
+
+    // --- Separator Line ---
+    doc.setDrawColor(220, 220, 220);
+    doc.line(leftMargin, y - 5, leftMargin + contentWidth, y - 5);
+    y += 5;
+
+    // --- Row 3: Client & Section ---
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cliente:', leftMargin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.client, leftMargin + 20, y);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Secção:', leftMargin + 80, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.section, leftMargin + 100, y);
+    
+    y += lineHeight * 1.5;
+
+    // --- Row 4: Quantity ---
+    doc.setFont('helvetica', 'bold');
+    doc.text('Quantidade:', leftMargin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.quantity || '-', leftMargin + 25, y);
+    
+    if (order.invoiceNumber) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Nº Fatura:', leftMargin + 80, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.invoiceNumber, leftMargin + 105, y);
+    }
+
+    // Outer Border (Optional, drawing based on dynamic height)
+    // We draw a rectangle from y=40 to current y + padding
+    const boxStart = 40;
+    const boxHeight = (y + 10) - boxStart;
     doc.setDrawColor(200, 200, 200);
-    doc.rect(14, startY - 5, 182, 110);
-
-    // Details content
-    doc.setFont('helvetica', 'bold');
-    doc.text('Número da Encomenda:', 20, startY + (lineHeight * 0));
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.orderNumber || '-', 80, startY + (lineHeight * 0));
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Data:', 20, startY + (lineHeight * 1));
-    doc.setFont('helvetica', 'normal');
-    doc.text(new Date(order.date).toLocaleDateString('pt-PT'), 80, startY + (lineHeight * 1));
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Nº Fatura:', 20, startY + (lineHeight * 2));
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.invoiceNumber || '-', 80, startY + (lineHeight * 2));
-
-    doc.line(20, startY + (lineHeight * 2.5), 180, startY + (lineHeight * 2.5)); // Separator
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cliente:', 20, startY + (lineHeight * 3.5));
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.client, 80, startY + (lineHeight * 3.5));
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Secção:', 20, startY + (lineHeight * 4.5));
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.section, 80, startY + (lineHeight * 4.5));
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Quantidade:', 20, startY + (lineHeight * 5.5));
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.quantity || '-', 80, startY + (lineHeight * 5.5));
-
-    doc.line(20, startY + (lineHeight * 6.5), 180, startY + (lineHeight * 6.5)); // Separator
-
-    // Item/Service moved to a dedicated section at the bottom to allow text wrapping
-    doc.setFont('helvetica', 'bold');
-    doc.text('Artigo / Serviço:', 20, startY + (lineHeight * 7.5));
-    doc.setFont('helvetica', 'normal');
-    
-    // Use splitTextToSize to wrap long text within the box width (approx 170 units)
-    const splitItem = doc.splitTextToSize(order.item, 170);
-    doc.text(splitItem, 20, startY + (lineHeight * 8.5));
+    doc.rect(14, boxStart, 182, boxHeight);
 
     // Footer
     doc.setFontSize(9);

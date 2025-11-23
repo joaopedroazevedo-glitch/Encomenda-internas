@@ -51,7 +51,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
         Nova Encomenda
       </h2>
       
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Date Field */}
         <div className="space-y-1">
           <label htmlFor="date" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
@@ -68,51 +68,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.date}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-400"
-            />
-          </div>
-        </div>
-
-        {/* Item/Service Field */}
-        <div className="space-y-1">
-          <label htmlFor="item" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
-            Artigo / Serviço
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Box className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              id="item"
-              name="item"
-              required
-              placeholder="Ex: Manutenção"
-              value={formData.item}
-              onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-400"
-            />
-          </div>
-        </div>
-
-        {/* Quantity Field */}
-        <div className="space-y-1">
-          <label htmlFor="quantity" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
-            Quantidade
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Hash className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              required
-              placeholder="Ex: 10"
-              value={formData.quantity}
-              onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
             />
           </div>
         </div>
@@ -134,7 +90,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               placeholder="Ex: Cliente A"
               value={formData.client}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-white text-gray-900 placeholder-gray-400"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
             />
           </div>
         </div>
@@ -154,7 +110,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
               required
               value={formData.section}
               onChange={handleChange}
-              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-white text-gray-900"
+              className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors appearance-none bg-gray-50 text-gray-900"
             >
               <option value="" disabled>Selecione</option>
               {sectionOptions.map((option) => (
@@ -171,8 +127,52 @@ export const OrderForm: React.FC<OrderFormProps> = ({ onAddOrder }) => {
           </div>
         </div>
 
+        {/* Quantity Field */}
+        <div className="space-y-1">
+          <label htmlFor="quantity" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+            Quantidade
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Hash className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              required
+              placeholder="Ex: 10"
+              value={formData.quantity}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* Item/Service Field - Full Width on bottom line */}
+        <div className="space-y-1 md:col-span-4">
+          <label htmlFor="item" className="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+            Artigo / Serviço
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Box className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              id="item"
+              name="item"
+              required
+              placeholder="Descrição do artigo ou serviço..."
+              value={formData.item}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors bg-gray-50 text-gray-900 placeholder-gray-400"
+            />
+          </div>
+        </div>
+
         {/* Submit Button */}
-        <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2">
+        <div className="md:col-span-4 flex justify-end pt-2">
           <button
             type="submit"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all"

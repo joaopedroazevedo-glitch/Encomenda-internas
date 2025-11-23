@@ -19,7 +19,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
       case 'Pendente': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'Em Curso': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Concluído': return 'bg-green-50 text-green-700 border-green-200';
-      case 'Anulado': return 'bg-gray-100 text-gray-600 border-gray-200';
+      case 'Anulado': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-600 border-gray-200';
     }
   };
@@ -46,7 +46,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider min-w-[200px]">
                 Artigo / Serviço
               </th>
-              <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
+              <th className="border border-gray-400 px-3 py-1 text-center font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider w-24">
                 Qtd.
               </th>
               <th className="border border-gray-400 px-3 py-1 text-left font-bold text-gray-700 bg-gray-100 text-xs uppercase tracking-wider">
@@ -86,7 +86,7 @@ export const OrderList: React.FC<OrderListProps> = ({ orders, onDelete, onExport
                 <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-normal break-words max-w-xs sm:max-w-md">
                   {order.item}
                 </td>
-                <td className="border border-gray-300 px-3 py-1 text-gray-900 text-right font-mono whitespace-nowrap">
+                <td className="border border-gray-300 px-3 py-1 text-gray-900 text-center font-mono whitespace-nowrap">
                   {order.quantity || '-'}
                 </td>
                 <td className="border border-gray-300 px-3 py-1 text-gray-900 whitespace-nowrap">
